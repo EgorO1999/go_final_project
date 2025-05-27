@@ -28,13 +28,13 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req SigninRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, SigninResponse{Error: "Неверный формат запроса"})
+		writeJSON(w, http.StatusBadRequest, SigninResponse{Error: "Неверный формат запроса"})
 		return
 	}
 
 	expectedPassword := os.Getenv("TODO_PASSWORD")
 	if expectedPassword == "" || req.Password != expectedPassword {
-		writeJSON(w, SigninResponse{Error: "Неверный пароль"})
+		writeJSON(w, http.StatusUnauthorized, SigninResponse{Error: "Неверный пароль"})
 		return
 	}
 
@@ -45,11 +45,11 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
-		writeJSON(w, SigninResponse{Error: "Ошибка создания токена"})
+		writeJSON(w, http.StatusInternalServerError, SigninResponse{Error: "Ошибка создания токена"})
 		return
 	}
 
-	writeJSON(w, SigninResponse{Token: tokenString})
+	writeJSON(w, http.StatusOK, SigninResponse{Token: tokenString})
 }
 
 func auth(next http.HandlerFunc) http.HandlerFunc {
